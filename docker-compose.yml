@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: notion-automation:latest
+    container_name: notion-automation
+    command: ["--email", "--notion", "--notion-send-email"]
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./rendered:/app/rendered

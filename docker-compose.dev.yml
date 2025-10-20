@@ -1,0 +1,8 @@
+services:
+  app:
+    ports:
+      - "12345:12345" # Expose port for debugpy
+    environment:
+      - ENV=dev
+    volumes:
+      - ./notion_automation:/app/notion_automation:ro

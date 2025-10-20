@@ -1,0 +1,245 @@
+/* Base Email Styles (inlined during render for deliverability) */
+body {
+    margin: 0;
+    background: #f6f7f9;
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #222;
+}
+
+.wrapper {
+    margin: 0 auto;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e5e9;
+    border-radius: 8px;
+    padding: 32px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.brand-icon {
+    height: 55px;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+h1,
+h2,
+h3 {
+    line-height: 1.25;
+    margin: 1.5em 0 .6em;
+    font-weight: 600;
+}
+
+p {
+    margin: 0 0 1em;
+}
+
+ul,
+ol {
+    padding-left: 1.4em;
+    margin: 0 0 1em;
+}
+
+li {
+    margin: .25em 0;
+}
+
+blockquote {
+    margin: 1em 0;
+    padding: .6em .9em;
+    border-left: 4px solid #d0d7de;
+    background: #fafbfc;
+    border-radius: 4px;
+    color: #444;
+}
+
+.callout {
+    margin: 1em 0;
+    padding: 12px 16px;
+    border: 1px solid #e2e5e9;
+    border-left: 4px solid #6366f1;
+    background: #f8f9fc;
+    border-radius: 6px;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.callout-icon {
+    font-size: 20px;
+    line-height: 1;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.2em 0;
+}
+
+th,
+td {
+    border: 1px solid #e5e7eb;
+    padding: 6px 10px;
+    text-align: left;
+}
+
+th {
+    background: #f2f4f7;
+}
+
+code {
+    background: #f2f4f7;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 90%;
+}
+
+pre code {
+    display: block;
+    padding: 12px;
+    overflow: auto;
+}
+
+strong {
+    font-weight: 600;
+}
+
+em {
+    font-style: italic;
+}
+
+u {
+    text-decoration: underline;
+}
+
+del {
+    text-decoration: line-through;
+    color: #b42318;
+}
+
+.footer {
+    margin-top: 32px;
+    font-size: 12px;
+    color: #667085;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.signature {
+    margin-top: 32px;
+    border-top: 1px solid #e2e5e9;
+    padding-top: 16px;
+    font-size: 13px;
+    color: #444;
+}
+
+a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.color-red {
+    color: #dc2626;
+}
+
+.color-red_background {
+    background: #dc2626;
+}
+
+.color-pink {
+    color: #db2777;
+}
+
+.color-pink_background {
+    background: #db2777;
+}
+
+.color-blue {
+    color: #2563eb;
+}
+
+.color-blue_background {
+    background: #2563eb;
+}
+
+.color-green {
+    color: #16a34a;
+}
+
+.color-green_background {
+    background: #16a34a;
+}
+
+.color-gray {
+    color: #4b5563;
+}
+
+.color-gray_background {
+    background: #4b5563;
+}
+
+.color-orange {
+    color: #f97316;
+}
+
+.color-orange_background {
+    background: #f97316;
+}
+
+.color-purple {
+    color: #7c3aed;
+}
+
+.color-purple_background {
+    background: #7c3aed;
+}
+
+.color-brown {
+    color: #92400e;
+}
+
+.color-brown_background {
+    background: #92400e;
+}
+
+.color-yellow {
+    color: #ca8a04;
+}
+
+.color-yellow_background {
+    background: #ca8a04;
+}
+
+.toggle {
+    margin: 1em 0;
+    border: 1px solid #e2e5e9;
+    border-radius: 6px;
+    background: #f9fafb;
+}
+
+.toggle-summary {
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: default;
+    background: #eef2f6;
+    border-bottom: 1px solid #e2e5e9;
+}
+
+.toggle-content {
+    padding: 12px 16px;
+}
