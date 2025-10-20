@@ -54,6 +54,7 @@ class AsyncImapClient:
     def __init__(self, host: str, port: int):
         # imaplib does its own SSL negotiation inside IMAP4_SSL
         self._client = imaplib.IMAP4_SSL(host=host, port=port)
+        self._lock = asyncio.Lock()
 
     async def login(self, username, password):  # idempotent
         # login is blocking; perform in thread
@@ -65,8 +66,9 @@ class AsyncImapClient:
         return _to_response(*resp)
 
     async def uid(self, command: str, *args: str) -> IMAPResponse:
-        logger.debug("IMAP UID command: %s %s", command, args)
-        resp = await asyncio.to_thread(self._client.uid, command, *args)
+        async with self._lock:
+            logger.debug("IMAP UID command: %s %s", command, args)
+            resp = await asyncio.to_thread(self._client.uid, command, *args)
         return _to_response(*resp)
 
     async def expunge(self) -> IMAPResponse:
