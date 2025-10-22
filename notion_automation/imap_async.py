@@ -72,8 +72,9 @@ class AsyncImapClient:
         return _to_response(*resp)
 
     async def expunge(self) -> IMAPResponse:
-        logger.debug("IMAP EXPUNGE command")
-        resp = await asyncio.to_thread(self._client.expunge)
+        async with self._lock:
+            logger.debug("IMAP EXPUNGE command")
+            resp = await asyncio.to_thread(self._client.expunge)
         # imaplib.expunge returns (typ, data)
         return _to_response(*resp)
 
