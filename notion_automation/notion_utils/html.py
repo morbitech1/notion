@@ -46,7 +46,7 @@ async def handle_cid_image(
             blocks.append({
                 "object": "block",
                 "type": "image",
-                "image": {"type": "external", "external": {"url": final_src}},
+                "image": {"type": "file", "file": {"url": final_src}},
             })
         elif alt:
             blocks.append({
@@ -65,7 +65,7 @@ async def add_image_block(blocks: list[Any], src: str, alt: Optional[str]) -> li
         blocks.append({
             "object": "block",
             "type": "image",
-            "image": {"type": "external", "external": {"url": src}},
+            "image": {"type": "file", "file": {"url": src}},
         })
     elif alt:
         blocks.append({
