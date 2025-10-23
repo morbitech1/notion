@@ -1,5 +1,7 @@
+import asyncio
 from email.message import EmailMessage, Message
 from pathlib import Path
+from typing import Any
 import pytest
 import deploy as deploy_mod
 import notion_automation.notion_utils as nu_mod
@@ -10,6 +12,7 @@ from notion_automation import email_utils as eu
 from notion_automation.notion_utils import config as nuc
 from notion_automation.notion_utils import api as nua
 from notion_automation.notion_utils import deploy as nud
+from notion_automation import http_async as ha
 from notion_automation.asyncio import run_async
 import email
 import os
@@ -93,6 +96,19 @@ class InMemoryNotion:
         page_size = body.get("page_size", 100)
         return {"results": all_pages[:page_size]}
 
+    async def upload_file(self, filename: str, data: bytes, ctype: str | None = None) -> dict[str, Any]:
+        file_obj = {"name": filename, "data": data, "type": ctype}
+        return {"type": "file", "file": file_obj}
+    
+    async def upload_file_url(self, url: str) -> dict[str, Any]:
+        file_obj = {"url": url}
+        return {"type": "external", "external": file_obj}
+
+
+async def request_json(*args, **kwargs) -> dict[str, Any]:
+    """Fake request_json that always fails for tests."""
+    return {}
+
 
 @pytest.fixture(autouse=True)
 def global_fixture(monkeypatch):
@@ -114,6 +130,7 @@ def global_fixture(monkeypatch):
     monkeypatch.setattr(nu.api, 'patch_database_properties', notion_memory.patch_database_properties)
     monkeypatch.setattr(nu.api, 'create_page', notion_memory.create_page)
     monkeypatch.setattr(nu.api, 'query_database', notion_memory.query_database)
+    monkeypatch.setattr(ha, 'request_json', request_json)
     try:
         yield
     finally:
@@ -121,6 +138,7 @@ def global_fixture(monkeypatch):
             env_path.write_text(backup, encoding='utf-8')
         elif not env_exists:
             env_path.unlink(missing_ok=True)
+        asyncio.run(ha.close_session())
 
 
 __all__ = [
@@ -139,4 +157,5 @@ __all__ = [
     'run_async',
     'email',
     'nud',
+    'ha',
 ]

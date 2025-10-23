@@ -67,7 +67,7 @@ def ensure_filename(fname: str, ctype: Optional[str]) -> str:
     ext = ''
     if '.' not in fname and "/" in ctype:
         _, mt_sub = ctype.split("/", 1)
-        ext = f".{mt_sub.split('+')[0][:8]}"
+        ext = f"{mt_sub.split('+')[0][:8]}"
     if "." in fname:
         fname, ext = fname.rsplit(".", 1)
     fname = re.sub(r"[^a-zA-Z0-9_-]", "-", fname)

@@ -33,5 +33,11 @@ async def test_inline_cid_image_block():
     # Find image block and ensure URL is either data: or external http (future S3)
     imgs = [b for b in blocks if b.get('type') == 'image']
     assert imgs, 'No image blocks produced'
-    url = imgs[0]['image']['external']['url']
-    assert url.startswith('data:') or url.startswith('http'), f'Unexpected URL {url}'
+    image_payload = imgs[0]['image']
+    if 'external' in image_payload:
+        url = image_payload['external']['url']
+    elif 'file' in image_payload:
+        url = image_payload['file'].get('url', '')
+    else:
+        url = ''
+    assert url.startswith('data:') or url.startswith('http') or url.startswith('https'), f'Unexpected URL {url}'

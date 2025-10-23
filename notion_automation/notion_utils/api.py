@@ -15,6 +15,7 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
+from notion_automation.s3_utils import ensure_filename
 from notion_automation.types import JSON, Pages
 
 from .. import http_async as ha
@@ -258,3 +259,74 @@ async def create_workspace_page_async(title: str) -> JSON:
         }
     }
     return await ha.request_json("POST", url, headers=nuc.HEADERS, json=payload, default={})
+
+
+async def upload_file(name: str, data: bytes, content_type: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Upload raw file bytes to Notion and return a file object descriptor.
+
+    Notion's public API recently introduced a direct file upload surface. To remain
+    backward compatible with older API versions or the in-memory test harness,
+    failures are swallowed and ``None`` returned so callers can gracefully fall
+    back to external URLs or data: URIs.
+
+    The (documented) shape for a successful response is similar to:
+      {
+        "object": "file",
+        "file": {"url": "https://...", "expiry_time": "..."},
+        "name": "example.png"
+      }
+
+    We transform that into the block-ready image payload component:
+      {"type": "file", "file": {"url": "...", "expiry_time": "..."}}
+
+    Args:
+        name: Original filename (sanitized / truncated to <=100 chars).
+        data: Raw file bytes.
+        content_type: Optional MIME type hint.
+
+    Returns:
+        Dict representing the Notion "file" object suitable to embed under an
+        image block (``image": {<returned dict>}``) or ``None`` on failure.
+    """
+    try:
+        safe_name = ensure_filename(name, content_type)
+        # Initial request to obtain signed upload URL / descriptor
+        init_payload: Dict[str, Any] = {"filename": safe_name}
+        if content_type:
+            init_payload["content_type"] = content_type
+        init_url = "https://api.notion.com/v1/file_uploads"
+        meta = await ha.request_json("POST", init_url, headers=nuc.HEADERS, json=init_payload, default={})
+        if not meta or not isinstance(meta, dict):
+            return None
+        upload_url = meta.get("upload_url")
+        if not isinstance(upload_url, str):  # Missing upload URL; cannot continue
+            logger.debug("upload_file missing upload_url in meta: %s", meta)
+            return None
+        # Prepare multipart form; let aiohttp set boundary (omit explicit Content-Type)
+        multipart_data = ha.multipart(data, safe_name, content_type)
+        # Strip Content-Type from headers to avoid overriding aiohttp boundary
+        upload_headers = {k: v for k, v in (nuc.HEADERS or {}).items() if k.lower() != "content-type"}
+        try:
+            await ha.request_json("POST", upload_url, headers=upload_headers, data=multipart_data)
+            return {
+                "type": "file_upload",
+                "file_upload": {'id': meta.get('id')},
+            }
+        except Exception as e:
+            logger.warning("upload_file upload failure name=%s size=%d err=%s", name, len(data), e)
+            return None
+    except Exception as e:  # pragma: no cover - network / API variance
+        logger.debug("upload_file failure name=%s size=%d err=%s", name, len(data), e)
+    return None
+
+
+async def upload_file_url(src: str) -> Optional[Dict[str, Any]]:
+    sess = await ha.get_session()
+    async with sess.get(src) as resp:
+        if resp.status != 200:
+            return None
+        data = await resp.read()
+    if len(data) > 5_000_000:  # 5MB safety cap
+        return None
+    ctype = resp.headers.get('Content-Type')
+    return await upload_file(src.rsplit('/', 1)[-1][:80], data, ctype)

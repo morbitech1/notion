@@ -8,6 +8,7 @@ from html.parser import HTMLParser
 from typing import Any, Awaitable, Dict, List, Optional, Sequence
 
 from .. import s3_utils as su
+from . import api as nua
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,13 @@ async def handle_cid_image(
         raw_bytes = meta["data"]
         ctype = meta.get("content_type")
         filename = meta.get("filename") or f"inline-{cid}"
+        if upload := await nua.upload_file(filename, raw_bytes, ctype):
+            blocks.append({
+                "object": "block",
+                "type": "image",
+                "image": upload,
+            })
+            return blocks
         if su.s3_enabled() and (mirrored := await su.s3_upload(filename[:80], raw_bytes, ctype)):
             final_src = mirrored
         elif len(raw_bytes) <= 40_000:
@@ -58,6 +66,13 @@ async def handle_cid_image(
 
 
 async def add_image_block(blocks: list[Any], src: str, alt: Optional[str]) -> list[Any]:
+    if uploaded := await nua.upload_file_url(src):
+        blocks.append({
+            "object": "block",
+            "type": "image",
+            "image": uploaded,
+        })
+        return blocks
     if su.s3_enabled(src) and (mirrored := await su.s3_upload_url(src)):
         src = mirrored
     src = src.split("?")[0]  # strip query params

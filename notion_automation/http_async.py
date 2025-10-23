@@ -67,6 +67,7 @@ async def request_json(
     *,
     headers: Optional[Dict[str, str]] = None,
     json: Any = None,
+    data: aiohttp.MultipartWriter | None = None,
     params: Optional[Dict[str, Any]] = None,
     expected: Iterable[int] | None = None,
     max_retries: int = 5,
@@ -85,7 +86,7 @@ async def request_json(
     last_err: Exception | None = None
     while True:
         try:
-            async with sess.request(method.upper(), url, headers=headers, json=json, params=params) as resp:
+            async with sess.request(method.upper(), url, headers=headers, json=json, params=params, data=data) as resp:
                 if resp.status in expected_set:
                     if resp.content_type == 'application/json':
                         return await resp.json()
@@ -116,3 +117,12 @@ async def request_json(
     if last_err:
         raise last_err
     return {}
+
+
+def multipart(data: bytes, filename: str, content_type: Optional[str] = None) -> aiohttp.MultipartWriter:
+    with aiohttp.MultipartWriter("form-data") as mpwriter:
+        part = mpwriter.append(data)
+        part.set_content_disposition("form-data", name="file", filename=filename)
+        if content_type:
+            part.headers["Content-Type"] = content_type
+    return mpwriter
