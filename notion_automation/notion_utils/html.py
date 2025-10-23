@@ -575,7 +575,9 @@ class SimpleParser(HTMLParser):
             self.in_pre = False
             if text.strip():
                 code_text = text.rstrip("\n")  # retain internal newlines; trim trailing
-                lang = self.code_language if self.code_language in LANGUAGES else "plain_text"
+                lang = "plain text"
+                if self.code_language in LANGUAGES:
+                    lang = self.code_language
                 self._append_block({
                     "object": "block",
                     "type": "code",
