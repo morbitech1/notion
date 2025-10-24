@@ -214,7 +214,7 @@ def get_message_addresses(msg: Message) -> tuple[List[str], List[str], List[str]
     base_to = extract_addresses(msg, 'To')
     base_cc = extract_addresses(msg, 'Cc')
     forwarded = extract_forwarded_original_headers(msg)
-    if forwarded:
+    if forwarded and set(forwarded.get('from', [])) != set(base_to):
         f_from = forwarded.get('from') or base_from
         f_to = forwarded.get('to') or [] or base_to
         f_cc = forwarded.get('cc') or []
