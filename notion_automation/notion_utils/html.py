@@ -671,16 +671,17 @@ class SimpleParser(HTMLParser):
                     "table_row": {"cells": cells_payload},
                 })
             if children:
-                self._append_block({
-                    "object": "block",
-                    "type": "table",
-                    "table": {
-                        "table_width": max((len(r) for r in self.table_rows), default=0),
-                        "has_column_header": has_col_header,
-                        "has_row_header": has_row_header,
-                        "children": children,
-                    },
-                })
+                for i in range(0, len(children), 100):
+                    self._append_block({
+                        "object": "block",
+                        "type": "table",
+                        "table": {
+                            "table_width": max((len(r) for r in self.table_rows), default=0),
+                            "has_column_header": has_col_header,
+                            "has_row_header": has_row_header,
+                            "children": children[i:i + 100],
+                        },
+                    })
             self.table_rows = []
 
     def handle_data(self, data: str) -> None:
