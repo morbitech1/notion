@@ -54,7 +54,9 @@ def build_text(r: dict[str, Any]) -> str:
         cls = f"color-{html_lib.escape(color)}".replace(" ", "-")[:40]
         seg_html = f"<span class=\"{cls}\">{seg_html}</span>"
     link_url = link_meta.get("url") if isinstance(link_meta, dict) else None
-    if isinstance(link_url, str) and link_url.startswith("http") and t != "code":
+    if link_url and t != "code":
+        if link_url.startswith('/'):
+            link_url = 'https://notion.so' + link_url
         safe = html_lib.escape(link_url)
         seg_html = f"<a href=\"{safe}\" target=\"_blank\" rel=\"noopener noreferrer\">{seg_html}</a>"
     return seg_html
