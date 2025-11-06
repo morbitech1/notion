@@ -241,7 +241,11 @@ class SimpleParser(HTMLParser):
                 "color": merged.get("color") if isinstance(merged.get("color"), str) else "default",
             },
         }
-        if link and any(link.startswith(part) for part in ['http://', 'https://', 'mailto:']):
+        if (
+            link and
+            any(link.startswith(part) for part in ['http://', 'https://', 'mailto:']) and
+            '://tel+' not in link
+        ):
             payload["text"]["link"] = {"url": link}
         seg_target.append(payload)
 
