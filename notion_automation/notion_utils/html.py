@@ -804,7 +804,8 @@ async def html_to_blocks(
         for blocks in await asyncio.gather(*parser.awaitables):
             final_blocks.extend(blocks)
         final_blocks.extend(parser.blocks)
-    except Exception:
+    except Exception as exc:
+        logger.error("Error occurred during HTML to blocks conversion: %s", exc)
         # Fallback: treat as plain text
         return plain_text_blocks(html)
     logger.info("HTML to blocks conversion took %.2f seconds yielded %d blocks", time.time() - t0, len(final_blocks))

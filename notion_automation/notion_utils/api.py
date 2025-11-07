@@ -322,10 +322,14 @@ async def upload_file(name: str, data: bytes, content_type: Optional[str] = None
 
 async def upload_file_url(src: str) -> Optional[Dict[str, Any]]:
     sess = await ha.get_session()
-    async with sess.get(src) as resp:
-        if resp.status != 200:
-            return None
-        data = await resp.read()
+    try:
+        async with sess.get(src) as resp:
+            if resp.status != 200:
+                return None
+            data = await resp.read()
+    except Exception as exc:
+        logger.error("Error occurred while fetching file from URL: %s", exc)
+        return None
     if len(data) > 5_000_000:  # 5MB safety cap
         return None
     ctype = resp.headers.get('Content-Type')
