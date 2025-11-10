@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import mimetypes
 from typing import Any, Dict, List, Optional
 
 from notion_automation.s3_utils import ensure_filename
@@ -291,6 +292,8 @@ async def upload_file(name: str, data: bytes, content_type: Optional[str] = None
     try:
         safe_name = ensure_filename(name, content_type)
         # Initial request to obtain signed upload URL / descriptor
+        if content_type is None or any(content_type.startswith(pre) for pre in ["application/", "binary/", "text/"]):
+            content_type = mimetypes.guess_type(safe_name)[0] or content_type or "application/octet-stream"
         init_payload: Dict[str, Any] = {"filename": safe_name}
         if content_type:
             init_payload["content_type"] = content_type
