@@ -280,7 +280,7 @@ class SimpleParser(HTMLParser):
         if len(self.list_parent_stack) == 1:
             target_blocks.append(new_block)
             return
-        parent = target_blocks[-1]
+        parent = target_blocks[-1] if target_blocks else {}
         ptype = parent.get("type", '')
         if ptype == btype:
             self.list_parent_stack[-2] = new_block
