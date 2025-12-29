@@ -213,12 +213,12 @@ async def find_or_create_support_case(email_msg: Message) -> Optional[str]:
     all_addrs = set(to_addrs + cc_addrs + bcc_addrs)
     domain = nuc.ENGINEERING_ALIAS.split('@')[-1]
     tracking_email = nuc.TRACKING_ALIAS in all_addrs
-    if tracking_email:
-        case_type = "Tracking"
-    elif nuc.ENGINEERING_ALIAS in all_addrs:
+    if nuc.ENGINEERING_ALIAS in all_addrs:
         case_type = "Technical"
     elif nuc.SUPPORT_ALIAS in all_addrs:
         case_type = "Support"
+    elif tracking_email:
+        case_type = "Tracking"
     else:
         return None
     subject = eu.get_decoded_subject(email_msg)
