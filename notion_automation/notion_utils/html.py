@@ -12,6 +12,13 @@ from . import api as nua
 
 logger = logging.getLogger(__name__)
 
+URL_PATTERN = re.compile(
+    r'^(?:(?:https?://)|(?:mailto:))'  # Protocol with stricter slash requirement
+    r'(?:[a-zA-Z0-9])'                 # Must start with alphanumeric
+    r'(?:[^\s()<>\\\[\]]+)'            # Middle content (excludes literal [ or ])
+    r'(?<![.,!?;:])$',                 # Cannot end with trailing punctuation
+    re.IGNORECASE
+)
 LANGUAGES = {
     "abap",
     "arduino",
@@ -241,11 +248,7 @@ class SimpleParser(HTMLParser):
                 "color": merged.get("color") if isinstance(merged.get("color"), str) else "default",
             },
         }
-        if (
-            link and
-            any(link.startswith(part) for part in ['http://', 'https://', 'mailto:']) and
-            '://tel+' not in link
-        ):
+        if (link and URL_PATTERN.match(link) and '://tel+' not in link):
             payload["text"]["link"] = {"url": link}
         seg_target.append(payload)
 
