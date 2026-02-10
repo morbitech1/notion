@@ -28,6 +28,7 @@ Component responsibilities:
 * `notion_automation/__main__.py`: Orchestrator CLI. Launches email and/or Notion watchers concurrently; supports live reload (`--reload`) and graceful shutdown (double Ctrl+C escalation).
 * `watch_email.py`: Async IMAP watcher using `aioimaplib`. Fetches new messages, resolves/creates a Support Case, creates an Email record page, handles contact enrichment, (optionally) uploads attachments to S3, (optionally) auto-archives processed messages.
 * `watch_notion.py`: Polls Replies DB for unsent pages (checkbox trigger). Converts blocks → HTML, wraps in branded template, attaches downloads, sends SMTP (blocking send executed in a thread), marks page as sent.
+* `watch_xero_wise.py`: Polls Xero for unpaid bills (ACCPAY) and creates corresponding Wise transfers using the bill reference + Xero contact payment details.
 * `notion_utils.py`: Shared Notion primitives: query + pagination, block fetch, block ↔ HTML conversions (subset), property name/value normalization, support case lookup/creation, contacts enrichment, attachment download, CID & inline images handling.
 * `s3_utils.py`: Idempotent public S3 upload helper (date + UUID keys) with optional CDN base URL override.
 * `http_async.py`: Shared `aiohttp` session, JSON request helper with retry/backoff (exponential + jitter), safe to use across modules.

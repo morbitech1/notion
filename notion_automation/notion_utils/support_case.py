@@ -289,6 +289,8 @@ async def find_or_create_support_case(email_msg: Message) -> Optional[str]:
         if partner_ids and not partner_already:
             patch_properties[nuc.PROP_SUPPORT_CASE_PARTNER_REL] = {
                 "relation": [{"id": pid} for pid in partner_ids[:10]]}
+        patch_properties[nuc.PROP_SUPPORT_CASE_TYPE]= {
+            await nua.get_database_property_type(db_id, nuc.PROP_SUPPORT_CASE_TYPE): [{"name": type_value}]}
         if patch_properties and existing:
             await nua.patch_page(existing, patch_properties)
         return existing
