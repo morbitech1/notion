@@ -17,6 +17,16 @@ from . import html as nuh
 logger = logging.getLogger(__name__)
 
 
+def _normalize_case_type(case_type: str) -> str:
+    """Normalize external case_type labels to configured Notion option names."""
+    v = (case_type or "").strip()
+    if v.lower().startswith("tech"):
+        return nuc.VAL_TYPE_TECHNICAL
+    if v.lower().startswith("supp"):
+        return nuc.VAL_TYPE_SUPPORT
+    return v
+
+
 async def build_support_case_properties(
     subject: str,
     ticket_id: Optional[str],
@@ -39,14 +49,9 @@ async def build_support_case_properties(
     Returns:
         Properties dict suitable for Notion page creation.
     """
-    # Map external case_type to configured select value names. Expect caller to pass either
-    # something matching VAL_TYPE_* or a free-form value; minimal normalization here.
     db_id = nuc.NOTION_SUPPORT_CASES_DB_ID
-    type_value = case_type
-    if case_type.lower().startswith("tech"):
-        type_value = nuc.VAL_TYPE_TECHNICAL
-    elif case_type.lower().startswith("supp"):
-        type_value = nuc.VAL_TYPE_SUPPORT
+    # Map external case_type to configured option names.
+    type_value = _normalize_case_type(case_type)
     title_key = title_prop
     props: dict[str, Any] = {
         title_key: {"title": nuh._rt(subject[:200])},
@@ -56,7 +61,7 @@ async def build_support_case_properties(
             await nua.get_database_property_type(db_id, nuc.PROP_SUPPORT_CASE_TYPE): [{"name": type_value}]},
     }
     if not ticket_id:
-        ticket_id = str(time.time())[:10]
+        ticket_id = str(time.time())
     props[nuc.PROP_SUPPORT_CASE_TICKET_ID] = {"rich_text": nuh._rt(ticket_id)}
     if partner_ids:
         props[nuc.PROP_SUPPORT_CASE_PARTNER_REL] = {"relation": [{"id": pid} for pid in partner_ids[:10]]}
@@ -276,6 +281,22 @@ async def find_or_create_support_case(email_msg: Message) -> Optional[str]:
             if isinstance(nm, str):
                 current_status = nm
         needs_status = outside_domain and current_status not in (nuc.VAL_STATUS_OPEN, nuc.VAL_STATUS_NEW_REPLY)
+
+        desired_type = _normalize_case_type(case_type)
+        type_prop = props.get(nuc.PROP_SUPPORT_CASE_TYPE, {})
+        type_prop_type = type_prop.get('type') if isinstance(type_prop, dict) else None
+        current_type_names: set[str] = set()
+        if isinstance(type_prop, dict) and isinstance(type_prop_type, str):
+            inner_type = type_prop.get(type_prop_type)
+            if type_prop_type == 'multi_select' and isinstance(inner_type, list):
+                for opt in inner_type:
+                    if isinstance(opt, dict) and isinstance(opt.get('name'), str):
+                        current_type_names.add(opt['name'])
+            elif type_prop_type in ('select', 'status') and isinstance(inner_type, dict):
+                nm = inner_type.get('name')
+                if isinstance(nm, str):
+                    current_type_names.add(nm)
+        needs_type = bool(desired_type) and current_type_names != {desired_type}
         partner_already = False
         if partner_ids:
             partner_prop = props.get(nuc.PROP_SUPPORT_CASE_PARTNER_REL)
@@ -286,6 +307,18 @@ async def find_or_create_support_case(email_msg: Message) -> Optional[str]:
         patch_properties: dict[str, object] = {}
         if needs_status:
             patch_properties[nuc.PROP_SUPPORT_CASE_STATUS] = {status_type: {"name": nuc.VAL_STATUS_NEW_REPLY}}
+        if needs_type:
+            if type_prop_type == 'multi_select':
+                patch_properties[nuc.PROP_SUPPORT_CASE_TYPE] = {'multi_select': [{'name': desired_type}]}
+            elif type_prop_type in ('select', 'status'):
+                patch_properties[nuc.PROP_SUPPORT_CASE_TYPE] = {type_prop_type: {'name': desired_type}}
+            else:
+                # Fallback: infer from database schema if page property is missing/unexpected.
+                inferred = await nua.get_database_property_type(db_id, nuc.PROP_SUPPORT_CASE_TYPE)
+                if inferred == 'multi_select':
+                    patch_properties[nuc.PROP_SUPPORT_CASE_TYPE] = {'multi_select': [{'name': desired_type}]}
+                elif inferred in ('select', 'status'):
+                    patch_properties[nuc.PROP_SUPPORT_CASE_TYPE] = {inferred: {'name': desired_type}}
         if partner_ids and not partner_already:
             patch_properties[nuc.PROP_SUPPORT_CASE_PARTNER_REL] = {
                 "relation": [{"id": pid} for pid in partner_ids[:10]]}

@@ -81,7 +81,7 @@ TRACKING_ALIAS = os.getenv('TRACKING_EMAIL', f'notion@{COMPANY_DOMAIN}').strip()
 NOTION_SUPPORT_CASES_DB_ID = os.getenv('NOTION_SUPPORT_CASES_DB_ID', '')
 NOTION_EMAILS_DB_ID = os.getenv('NOTION_EMAILS_DB_ID', '')
 NOTION_CONTACTS_DB_ID = os.getenv('NOTION_CONTACTS_DB_ID', '')
-TICKET_REGEX = re.compile(r'\[(\d{10})\]')
+TICKET_REGEX = re.compile(r'\[(\d{10}(\.\d{7})?)\]')
 
 
 # ---------------- Constant Notion headers ----------------
