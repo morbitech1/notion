@@ -194,6 +194,34 @@ Pattern: `NOTION_PROP_<DB>_<PROP>` where `<DB>` ∈ {`SUPPORT_CASE`, `EMAILS`, `
 
 (* required if a role-based or default credential chain is not available.)
 
+### Xero → Wise Sync (Optional)
+
+Creates **Wise bank transfers** for **unpaid Xero bills** (Xero invoices of type `ACCPAY`).
+
+Behavior (current implementation):
+* Selects authorised bills with `AmountDue > 0` (overrideable via `XERO_BILLS_WHERE`).
+* Uses the Xero bill `Reference` field as the Wise transfer reference (fallback: invoice number).
+* Uses the Xero Contact `BankAccountDetails` string to extract an IBAN for the Wise recipient.
+* Maintains a local state file (`XERO_WISE_STATE_PATH`) to avoid recreating transfers.
+
+Run it:
+```bash
+python -m notion_automation --xero-wise
+```
+
+Env vars:
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `XERO_ACCESS_TOKEN` | yes | – | Xero OAuth2 bearer token (refresh handled externally) |
+| `XERO_TENANT_ID` | yes | – | Xero tenant id (`xero-tenant-id` header) |
+| `XERO_BASE_URL` | no | https://api.xero.com/api.xro/2.0 | Base URL override |
+| `XERO_BILLS_WHERE` | no | Type=="ACCPAY"&&Status=="AUTHORISED"&&AmountDue>0 | Xero filter string |
+| `WISE_API_TOKEN` | yes | – | Wise API token |
+| `WISE_PROFILE_ID` | yes | – | Wise profile id (numeric) |
+| `WISE_BASE_URL` | no | https://api.transferwise.com | Base URL override |
+| `XERO_WISE_STATE_PATH` | no | rendered/xero-wise-state.json | Idempotency state file |
+| `XERO_WISE_DRY_RUN` | no | 0 | If 1, logs actions without creating transfers |
+
 ### Development & Testing
 All internal logic is asynchronous; tests use `pytest-asyncio` auto mode.
 

@@ -25,6 +25,7 @@ from typing import List, Optional
 
 from . import watch_email as we
 from . import watch_notion as wn
+from . import watch_xero_wise as wxw
 from .asyncio import run_async
 from .logging_utils import configure_logging
 from .notion_utils.deploy import notion_deploy_async
@@ -88,6 +89,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Run email watcher, notion watcher, or both.")
     p.add_argument("--email", action="store_true", help="Run the email watcher")
     p.add_argument("--notion", action="store_true", help="Run the notion replies watcher")
+    p.add_argument("--xero-wise", action="store_true", help="Run the Xero → Wise sync watcher")
     p.add_argument(
         "--email-since", type=int, help="Start email watcher from this UID (exclusive)"
     )
@@ -165,6 +167,8 @@ async def _run_with_reload(args: argparse.Namespace) -> int:
             tasks.append(asyncio.create_task(we.run_email_watcher(args, stop_event), name="email"))
         if args.notion:
             tasks.append(asyncio.create_task(wn.run_notion_watcher(args, stop_event), name="notion"))
+        if args.xero_wise:
+            tasks.append(asyncio.create_task(wxw.run_xero_wise_watcher(args, stop_event), name="xero-wise"))
         return tasks
 
     async def cancel_tasks(tasks: List[asyncio.Task]) -> None:
